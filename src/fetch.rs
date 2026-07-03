@@ -37,31 +37,33 @@ pub(crate) async fn fetch_html(
         .await
         .map_err(|e| e.to_string())?;
 
-    if let Some(len) = response.content_length() {
-        if len > MAX_PAGE_SIZE {
-            return Err(format!(
-                "page too large: {len} bytes exceeds {MAX_PAGE_SIZE} byte limit"
-            ));
-        }
+    if let Some(len) = response.content_length()
+        && len > MAX_PAGE_SIZE
+    {
+        return Err(format!(
+            "page too large: {len} bytes exceeds {MAX_PAGE_SIZE} byte limit"
+        ));
     }
 
     let body = response.bytes().await.map_err(|e| e.to_string())?;
+
     if body.len() as u64 > MAX_PAGE_SIZE {
         return Err(format!(
             "page too large: {} bytes exceeds {MAX_PAGE_SIZE} byte limit",
             body.len()
         ));
     }
+
     let html = String::from_utf8_lossy(&body).into_owned();
 
     // Pre-fetch external stylesheets into a cache keyed by resolved URL.
     let mut css_cache = HashMap::new();
     let links = extract_stylesheet_links(&html, &base);
-    let capped = if links.len() > MAX_STYLESHEETS {
-        &links[..MAX_STYLESHEETS]
-    } else {
-        &links
+    let capped = match links.len() > MAX_STYLESHEETS {
+        true => &links[..MAX_STYLESHEETS],
+        false => &links,
     };
+
     for css_url in capped {
         fetch_css_recursive(client, css_url, &mut css_cache, 0).await;
     }
@@ -138,10 +140,10 @@ fn extract_css_imports(css: &str, base: &Url) -> Vec<Url> {
             None
         };
 
-        if let Some(href) = href {
-            if let Ok(resolved) = base.join(&href) {
-                results.push(resolved);
-            }
+        if let Some(href) = href
+            && let Ok(resolved) = base.join(&href)
+        {
+            results.push(resolved);
         }
 
         pos = after_ws + 1;
@@ -202,12 +204,12 @@ pub(crate) async fn fetch_image(url: String) -> Result<Vec<u8>, String> {
     let client = &*HTTP_CLIENT;
     let response = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
-    if let Some(len) = response.content_length() {
-        if len > MAX_IMAGE_SIZE {
-            return Err(format!(
-                "image too large: {len} bytes exceeds {MAX_IMAGE_SIZE} byte limit"
-            ));
-        }
+    if let Some(len) = response.content_length()
+        && len > MAX_IMAGE_SIZE
+    {
+        return Err(format!(
+            "image too large: {len} bytes exceeds {MAX_IMAGE_SIZE} byte limit"
+        ));
     }
 
     let bytes = response.bytes().await.map_err(|e| e.to_string())?;

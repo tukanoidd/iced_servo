@@ -36,8 +36,8 @@ mod webview;
 pub use basic::{Action, WebView};
 pub use webview::{advanced, basic};
 
-#[cfg(feature = "blitz")]
-pub use engines::blitz::Blitz;
+// #[cfg(feature = "blitz")]
+// pub use engines::blitz::Blitz;
 
 #[cfg(feature = "litehtml")]
 pub use engines::litehtml::Litehtml;
@@ -46,11 +46,12 @@ pub use engines::litehtml::Litehtml;
 pub use engines::servo::Servo;
 
 #[cfg(feature = "cef")]
-pub use engines::cef_engine::{cef_subprocess_check, Cef};
+pub use engines::cef_engine::{Cef, cef_subprocess_check};
 
 pub(crate) mod util;
 
-#[cfg(any(feature = "litehtml", feature = "blitz"))]
+// #[cfg(any(feature = "litehtml", feature = "blitz"))]
+#[cfg(feature = "litehtml")]
 pub(crate) mod fetch;
 
 /// Image details for passing the view around

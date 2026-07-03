@@ -1,28 +1,29 @@
-use std::cell::RefCell;
-use std::hash::{Hash, Hasher};
-use std::rc::Rc;
-use std::sync::Arc;
-use std::time::Duration;
-
-use iced::keyboard;
-use iced::mouse::{self, Interaction};
-use iced::{Point, Size};
-use tokio::sync::Notify;
-
-use super::{Engine, PageType, PixelFormat, ViewId, ViewManager};
-use crate::ImageInfo;
+use std::{
+    cell::RefCell,
+    hash::{Hash, Hasher},
+    rc::Rc,
+    sync::Arc,
+    time::Duration,
+};
 
 use dpi::PhysicalSize;
+use iced::{
+    Point, Size, keyboard,
+    mouse::{self, Interaction},
+};
 use servo::{
-    Cursor, InputEvent, KeyboardEvent, MouseButton as ServoMouseButton, MouseButtonAction,
+    Cursor, DeviceIndependentPixel, DeviceIntRect, DeviceIntSize, DevicePixel, DevicePoint,
+    InputEvent, KeyboardEvent, MouseButton as ServoMouseButton, MouseButtonAction,
     MouseButtonEvent, MouseMoveEvent, RenderingContext, Servo as ServoInstance, ServoBuilder,
-    SoftwareRenderingContext, WebView, WebViewBuilder, WebViewDelegate, WheelDelta, WheelEvent,
-    WheelMode,
+    SoftwareRenderingContext, WebView, WebViewBuilder, WebViewDelegate, WebViewPoint, WheelDelta,
+    WheelEvent, WheelMode,
 };
-use servo::{
-    DeviceIndependentPixel, DeviceIntRect, DeviceIntSize, DevicePixel, DevicePoint, WebViewPoint,
-};
+use tokio::sync::Notify;
 use url::Url;
+
+use crate::ImageInfo;
+
+use super::{Engine, PageType, PixelFormat, ViewId, ViewManager};
 
 /// Event-driven waker that Servo calls (from any thread) whenever it wants the
 /// embedder to spin its event loop. The `Notify` coalesces multiple wake signals
@@ -166,9 +167,11 @@ impl Servo {
 
         let wake_stream = iced::Subscription::run_with(id, |id| {
             let notify = Arc::clone(&id.0);
-            iced::stream::channel(1, async move |mut output| loop {
-                notify.notified().await;
-                let _ = output.send(crate::Action::Update).await;
+            iced::stream::channel(1, async move |mut output| {
+                loop {
+                    notify.notified().await;
+                    let _ = output.send(crate::Action::Update).await;
+                }
             })
         });
 
@@ -429,7 +432,7 @@ impl Engine for Servo {
                     }));
             }
             mouse::Event::WheelScrolled { delta } => {
-                drop(view);
+                let _ = view;
                 self.scroll(id, delta);
             }
             _ => {}

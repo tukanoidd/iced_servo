@@ -9,5 +9,5 @@ pub mod basic;
 /// Shader-based rendering widget for engines that manage their own scrolling
 /// (e.g. servo, cef, blitz). Uses direct GPU texture updates to avoid Handle
 /// cache churn.
-#[cfg(any(feature = "servo", feature = "cef", feature = "blitz"))]
+#[cfg(any(feature = "servo", feature = "cef"/*, feature = "blitz"*/))]
 pub(crate) mod shader_widget;

@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 
 use crate::ImageInfo;
-use iced::keyboard;
-use iced::mouse::{self, Interaction};
 use iced::Point;
 use iced::Size;
+use iced::keyboard;
+use iced::mouse::{self, Interaction};
 
 mod view_manager;
 pub use view_manager::ViewManager;
 
-/// A Blitz implementation of Engine (Stylo + Taffy + Vello)
-#[cfg(feature = "blitz")]
-pub mod blitz;
+// A Blitz implementation of Engine (Stylo + Taffy + Vello)
+// #[cfg(feature = "blitz")]
+// pub mod blitz;
 
 /// A litehtml implementation of Engine for HTML rendering
 #[cfg(feature = "litehtml")]

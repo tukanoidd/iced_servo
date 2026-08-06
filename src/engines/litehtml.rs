@@ -12,9 +12,9 @@ use crate::ImageInfo;
 use litehtml::pixbuf::PixbufContainer;
 use litehtml::selection::Selection;
 use litehtml::{
-    css_escape_ident, BackgroundLayer, BorderRadiuses, Borders, Color, ConicGradient, Document,
-    DocumentContainer, DrawContext, FontDescription, FontHandle, FontMetrics, LinearGradient,
-    ListMarker, MediaFeatures, Position, RadialGradient, TextTransform,
+    BackgroundLayer, BorderRadiuses, Borders, Color, ConicGradient, Document, DocumentContainer,
+    DrawContext, FontDescription, FontHandle, FontMetrics, LinearGradient, ListMarker,
+    MediaFeatures, Position, RadialGradient, TextTransform, css_escape_ident,
 };
 
 /// Wrapper around `PixbufContainer` that handles CSS import resolution
@@ -57,20 +57,22 @@ impl WebviewContainer {
         if let Ok(u) = Url::parse(href) {
             return Some(u);
         }
+
         // Resolve against the provided base context (e.g. stylesheet URL)
-        if !baseurl.is_empty() {
-            if let Ok(base) = Url::parse(baseurl) {
-                if let Ok(u) = base.join(href) {
-                    return Some(u);
-                }
-            }
+        if !baseurl.is_empty()
+            && let Ok(base) = Url::parse(baseurl)
+            && let Ok(u) = base.join(href)
+        {
+            return Some(u);
         }
+
         // Fall back to page base URL
-        if !self.base_url.is_empty() {
-            if let Ok(base) = Url::parse(&self.base_url) {
-                return base.join(href).ok();
-            }
+        if !self.base_url.is_empty()
+            && let Ok(base) = Url::parse(&self.base_url)
+        {
+            return base.join(href).ok();
         }
+
         None
     }
 }
@@ -478,17 +480,24 @@ fn render_view(view: &mut LitehtmlView) {
 /// iced's `image::Handle::from_rgba` expects straight (unpremultiplied) alpha.
 fn unpremultiply_rgba(pixels: &[u8]) -> Vec<u8> {
     let mut result = Vec::with_capacity(pixels.len());
-    for chunk in pixels.chunks_exact(4) {
+
+    for chunk in pixels.as_chunks::<4>().0 {
         let a = chunk[3] as u32;
-        if a == 0 {
-            result.extend_from_slice(&[0, 0, 0, 0]);
-        } else {
-            let r = ((chunk[0] as u32 * 255 + a / 2) / a).min(255) as u8;
-            let g = ((chunk[1] as u32 * 255 + a / 2) / a).min(255) as u8;
-            let b = ((chunk[2] as u32 * 255 + a / 2) / a).min(255) as u8;
-            result.extend_from_slice(&[r, g, b, chunk[3]]);
+
+        match a == 0 {
+            true => {
+                result.extend_from_slice(&[0, 0, 0, 0]);
+            }
+            false => {
+                let r = ((chunk[0] as u32 * 255 + a / 2) / a).min(255) as u8;
+                let g = ((chunk[1] as u32 * 255 + a / 2) / a).min(255) as u8;
+                let b = ((chunk[2] as u32 * 255 + a / 2) / a).min(255) as u8;
+
+                result.extend_from_slice(&[r, g, b, chunk[3]]);
+            }
         }
     }
+
     result
 }
 

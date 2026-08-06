@@ -1,6 +1,6 @@
 use iced::{
-    widget::{button, column, container, row, text},
     Element, Length, Subscription, Task,
+    widget::{button, column, container, row, text},
 };
 use iced_webview::{Action, PageType, WebView};
 
@@ -13,11 +13,11 @@ use std::time::Duration;
 type Engine = iced_webview::Cef;
 #[cfg(all(feature = "servo", not(feature = "cef")))]
 type Engine = iced_webview::Servo;
-#[cfg(all(feature = "blitz", not(feature = "servo"), not(feature = "cef")))]
-type Engine = iced_webview::Blitz;
+// #[cfg(all(feature = "blitz", not(feature = "servo"), not(feature = "cef")))]
+// type Engine = iced_webview::Blitz;
 #[cfg(all(
     feature = "litehtml",
-    not(feature = "blitz"),
+    /*not(feature = "blitz"),*/
     not(feature = "servo"),
     not(feature = "cef")
 ))]
@@ -127,14 +127,14 @@ impl App {
             .align_right(Length::Fill)
         ]];
 
-        if self.show_webview {
-            if let Some(current_view) = self.current_view {
-                column = column.push(column![
-                    text(format!("view index: {}", current_view)),
-                    self.webview.view().map(Message::WebView),
-                    text(format!("Url: {:?}", self.webview_url)),
-                ]);
-            }
+        if self.show_webview
+            && let Some(current_view) = self.current_view
+        {
+            column = column.push(column![
+                text(format!("view index: {}", current_view)),
+                self.webview.view().map(Message::WebView),
+                text(format!("Url: {:?}", self.webview_url)),
+            ]);
         }
         column.into()
     }

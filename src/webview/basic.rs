@@ -1,13 +1,12 @@
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use iced::advanced::image as core_image;
 use iced::advanced::{
-    self, layout,
+    self, Clipboard, Layout, Shell, Widget, layout,
     renderer::{self},
     widget::Tree,
-    Clipboard, Layout, Shell, Widget,
 };
 use iced::keyboard;
 use iced::mouse::{self, Interaction};
@@ -15,7 +14,7 @@ use iced::{Element, Point, Size, Task};
 use iced::{Event, Length, Rectangle};
 use url::Url;
 
-use crate::{engines, ImageInfo, PageType, ViewId};
+use crate::{ImageInfo, PageType, ViewId, engines};
 
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq)]
@@ -298,20 +297,27 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                         self.view_ids.push(id);
                         self.engine.goto(id, PageType::Url(url.clone()));
 
-                        #[cfg(any(feature = "litehtml", feature = "blitz"))]
+                        // #[cfg(any(feature = "litehtml", feature = "blitz"))]
+                        #[cfg(feature = "litehtml")]
                         if let Some(mapper) = &self.action_mapper {
                             let mapper = mapper.clone();
                             let url_clone = url.clone();
+
                             tasks.push(Task::perform(
                                 crate::fetch::fetch_html(url),
                                 move |result| mapper(Action::FetchComplete(id, url_clone, result)),
                             ));
                         } else {
-                            eprintln!("iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder.");
+                            eprintln!(
+                                "iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder."
+                            );
                         }
 
-                        #[cfg(not(any(feature = "litehtml", feature = "blitz")))]
-                        eprintln!("iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder.");
+                        // #[cfg(not(any(feature = "litehtml", feature = "blitz")))]
+                        #[cfg(not(feature = "litehtml"))]
+                        eprintln!(
+                            "iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder."
+                        );
                     } else {
                         let id = self
                             .engine
@@ -326,6 +332,7 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                 if let Some(on_view_create) = &self.on_create_view {
                     tasks.push(Task::done(on_view_create.clone()))
                 }
+
                 tasks.push(self.query_scale_factor());
             }
             Action::GoBackward => {
@@ -346,11 +353,13 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                     let url_str = url.to_string();
                     self.engine.goto(view_id, PageType::Url(url_str.clone()));
 
-                    #[cfg(any(feature = "litehtml", feature = "blitz"))]
+                    // #[cfg(any(feature = "litehtml", feature = "blitz"))]
+                    #[cfg(feature = "litehtml")]
                     if !self.engine.handles_urls() {
                         if let Some(mapper) = &self.action_mapper {
                             let mapper = mapper.clone();
                             let fetch_url = url_str.clone();
+
                             tasks.push(Task::perform(
                                 crate::fetch::fetch_html(fetch_url),
                                 move |result| {
@@ -358,13 +367,18 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                                 },
                             ));
                         } else {
-                            eprintln!("iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder.");
+                            eprintln!(
+                                "iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder."
+                            );
                         }
                     }
 
-                    #[cfg(not(any(feature = "litehtml", feature = "blitz")))]
+                    // #[cfg(not(any(feature = "litehtml", feature = "blitz")))]
+                    #[cfg(not(feature = "litehtml"))]
                     if !self.engine.handles_urls() {
-                        eprintln!("iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder.");
+                        eprintln!(
+                            "iced_webview: .on_action() is required for URL navigation and image loading when the engine does not handle URLs natively. Call .on_action(Message::YourVariant) on your WebView builder."
+                        );
                     }
                 }
             }
@@ -440,9 +454,11 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                 }
 
                 // Discover images that need fetching after layout
-                #[cfg(any(feature = "litehtml", feature = "blitz"))]
+                // #[cfg(any(feature = "litehtml", feature = "blitz"))]
+                #[cfg(feature = "litehtml")]
                 if let Some(mapper) = &self.action_mapper {
                     let pending = self.engine.take_pending_images();
+
                     for (view_id, src, baseurl, redraw_on_ready) in pending {
                         let page_url = self.engine.get_url(view_id);
                         // Resolve against the baseurl context (e.g. stylesheet URL),
@@ -453,13 +469,17 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                             Err(_) => continue,
                         };
                         let scheme = resolved.scheme();
+
                         if scheme != "http" && scheme != "https" {
                             continue;
                         }
+
                         self.inflight_images += 1;
+
                         let mapper = mapper.clone();
                         let raw_src = src.clone();
                         let epoch = *self.nav_epochs.get(&view_id).unwrap_or(&0);
+
                         tasks.push(Task::perform(
                             crate::fetch::fetch_image(resolved.to_string()),
                             move |result| {
@@ -481,6 +501,7 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                 if self.view_size != size {
                     self.view_size = size;
                     self.engine.resize(size);
+
                     tasks.push(self.query_scale_factor());
                 } else {
                     // No-op resize (published every frame because the widget
@@ -490,19 +511,20 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                 }
             }
             Action::CopySelection => {
-                if let Some(view_id) = self.get_current_view_id() {
-                    if let Some(text) = self.engine.get_selected_text(view_id) {
-                        if let Some(on_copy) = &self.on_copy {
-                            tasks.push(Task::done((on_copy)(text)));
-                        }
-                    }
+                if let Some(view_id) = self.get_current_view_id()
+                    && let Some(text) = self.engine.get_selected_text(view_id)
+                    && let Some(on_copy) = &self.on_copy
+                {
+                    tasks.push(Task::done((on_copy)(text)));
                 }
+
                 return Task::batch(tasks);
             }
             Action::FetchComplete(view_id, url, result) => {
                 if !self.engine.has_view(view_id) {
                     return Task::batch(tasks);
                 }
+
                 match result {
                     Ok((html, css_cache)) => {
                         self.engine.set_css_cache(view_id, css_cache);
@@ -580,7 +602,7 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
             // Engines that manage their own scrolling and produce a viewport-
             // sized frame each tick (servo, blitz, cef): use the shader widget
             // for direct GPU texture updates, avoiding Handle cache churn.
-            #[cfg(any(feature = "servo", feature = "cef", feature = "blitz"))]
+            #[cfg(any(feature = "servo", feature = "cef"/*, feature = "blitz"*/))]
             {
                 use crate::webview::shader_widget::WebViewShaderProgram;
                 iced::widget::Shader::new(WebViewShaderProgram::new(
@@ -592,7 +614,7 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
                 .height(Length::Fill)
                 .into()
             }
-            #[cfg(not(any(feature = "servo", feature = "cef", feature = "blitz")))]
+            #[cfg(not(any(feature = "servo", feature = "cef"/*, feature = "blitz"*/)))]
             {
                 WebViewWidget::new(
                     self.engine.get_view(id),
@@ -777,19 +799,22 @@ where
                     modifiers,
                     ..
                 } = event
+                    && modifiers.command()
+                    && c.as_str() == "c"
                 {
-                    if modifiers.command() && c.as_str() == "c" {
-                        shell.publish(Action::CopySelection);
-                    }
+                    shell.publish(Action::CopySelection);
                 }
+
                 shell.publish(Action::SendKeyboardEvent(event.clone()));
             }
             Event::Mouse(event) => {
-                if let Some(point) = cursor.position_in(layout.bounds()) {
-                    shell.publish(Action::SendMouseEvent(*event, point));
-                } else if matches!(event, mouse::Event::CursorLeft) {
-                    shell.publish(Action::SendMouseEvent(*event, Point::ORIGIN));
-                }
+                shell.publish(Action::SendMouseEvent(
+                    *event,
+                    match cursor.position_in(layout.bounds()) {
+                        Some(point) => point,
+                        None => Point::ORIGIN,
+                    },
+                ));
             }
             _ => (),
         }

@@ -4,8 +4,6 @@ use iced::{
 };
 use iced_servo::{Action, PageType, WebView};
 
-type Engine = iced_servo::Servo;
-
 static URL: &str = "https://docs.rs/iced/latest/iced/index.html";
 
 fn main() -> iced::Result {
@@ -26,7 +24,7 @@ enum Message {
 }
 
 struct App {
-    webview: WebView<Engine, Message>,
+    webview: WebView<Message>,
     show_webview: bool,
     webview_url: Option<String>,
     num_views: u32,

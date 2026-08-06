@@ -4,8 +4,6 @@ use iced::{
 };
 use iced_servo::{Action, PageType, WebView};
 
-type Engine = iced_servo::Servo;
-
 /// Sample email HTML -- table-based layout typical of marketing emails.
 static EMAIL_HTML: &str = r##"
 <html>
@@ -95,7 +93,7 @@ enum Message {
 }
 
 struct App {
-    webview: WebView<Engine, Message>,
+    webview: WebView<Message>,
     ready: bool,
 }
 

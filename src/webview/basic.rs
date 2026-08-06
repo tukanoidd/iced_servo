@@ -18,7 +18,9 @@ use iced::{
 };
 use url::Url;
 
-use crate::{ImageInfo, PageType, ViewId, engines, webview::shader_widget::WebViewShaderProgram};
+use crate::{
+    Engine, ImageInfo, PageType, Servo, ViewId, webview::shader_widget::WebViewShaderProgram,
+};
 
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq)]
@@ -71,11 +73,8 @@ pub enum Action {
 ///         .map(|_| Message::WebView(Action::Update))
 /// }
 /// ```
-pub struct WebView<Engine, Message>
-where
-    Engine: engines::Engine,
-{
-    engine: Engine,
+pub struct WebView<Message> {
+    engine: Servo,
     view_size: Size<u32>,
     scale_factor: f32,
     current_view_index: Option<usize>, // the index corresponding to the view_ids list of ViewIds
@@ -100,7 +99,7 @@ where
     scale_observer: Arc<AtomicU32>,
 }
 
-impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView<Engine, Message> {
+impl<Message: Send + Clone + 'static> WebView<Message> {
     fn get_current_view_id(&self) -> Option<ViewId> {
         self.current_view_index
             .and_then(|idx| self.view_ids.get(idx))
@@ -112,12 +111,10 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
     }
 }
 
-impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> Default
-    for WebView<Engine, Message>
-{
+impl<Message: Send + Clone + 'static> Default for WebView<Message> {
     fn default() -> Self {
         WebView {
-            engine: Engine::default(),
+            engine: Servo::default(),
             view_size: Size {
                 width: 1920,
                 height: 1080,
@@ -140,7 +137,7 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> Default
     }
 }
 
-impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView<Engine, Message> {
+impl<Message: Send + Clone + 'static> WebView<Message> {
     /// Create new basic WebView widget
     pub fn new() -> Self {
         Self::default()
@@ -551,9 +548,7 @@ impl<Engine: engines::Engine + Default, Message: Send + Clone + 'static> WebView
     pub fn current_title(&self) -> &str {
         &self.title
     }
-}
 
-impl<Message: Send + Clone + 'static> WebView<crate::engines::Servo, Message> {
     /// Event-driven subscription for the Servo engine — yields
     /// [`Action::Update`] whenever Servo wakes the embedder, with a 500ms
     /// fallback tick. Use this in place of a hardcoded `time::every(...)`

@@ -1,29 +1,16 @@
+mod servo;
+mod view_manager;
+
 use std::collections::HashMap;
 
+use iced::{
+    Point, Size, keyboard,
+    mouse::{self, Interaction},
+};
+
+pub use crate::engines::{servo::*, view_manager::ViewManager};
+
 use crate::ImageInfo;
-use iced::Point;
-use iced::Size;
-use iced::keyboard;
-use iced::mouse::{self, Interaction};
-
-mod view_manager;
-pub use view_manager::ViewManager;
-
-// A Blitz implementation of Engine (Stylo + Taffy + Vello)
-// #[cfg(feature = "blitz")]
-// pub mod blitz;
-
-/// A litehtml implementation of Engine for HTML rendering
-#[cfg(feature = "litehtml")]
-pub mod litehtml;
-
-/// A Servo implementation of Engine (full browser: HTML5, CSS3, JS)
-#[cfg(feature = "servo")]
-pub mod servo;
-
-/// A CEF/Chromium implementation of Engine (full browser via cef-rs)
-#[cfg(feature = "cef")]
-pub mod cef_engine;
 
 /// Creation of new pages to be of a html type or a url
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -44,7 +31,7 @@ pub enum PixelFormat {
 
 /// Alias of usize used for controlling specific views
 /// Only used by advanced to get views, basic simply uses u32
-pub type ViewId = usize;
+pub type ViewId = u32;
 
 /// Trait to handle multiple browser engines
 /// Currently only supports cpu renders via pixel_buffer

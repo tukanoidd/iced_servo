@@ -1,13 +1,13 @@
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use iced::mouse::{self, Interaction};
 use iced::wgpu;
 use iced::widget::shader;
-use iced::{keyboard, Event, Point, Rectangle, Size};
+use iced::{Event, Point, Rectangle, Size, keyboard};
 
-use crate::webview::basic::Action;
 use crate::ImageInfo;
+use crate::webview::basic::Action;
 
 /// Shader-based rendering for servo webview content.
 ///
@@ -315,10 +315,10 @@ impl<'a> shader::Program<Action> for WebViewShaderProgram<'a> {
                     modifiers,
                     ..
                 } = event
+                    && modifiers.command()
+                    && c.as_str() == "c"
                 {
-                    if modifiers.command() && c.as_str() == "c" {
-                        return Some(shader::Action::publish(Action::CopySelection));
-                    }
+                    return Some(shader::Action::publish(Action::CopySelection));
                 }
                 Some(shader::Action::publish(Action::SendKeyboardEvent(
                     event.clone(),

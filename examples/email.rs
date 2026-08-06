@@ -2,26 +2,7 @@ use iced::{
     Element, Subscription, Task,
     widget::{column, text},
 };
-use iced_webview::{Action, PageType, WebView};
-
-#[cfg(not(feature = "servo"))]
-use iced::time;
-#[cfg(not(feature = "servo"))]
-use std::time::Duration;
-
-#[cfg(feature = "cef")]
-type Engine = iced_webview::Cef;
-#[cfg(all(feature = "servo", not(feature = "cef")))]
-type Engine = iced_webview::Servo;
-// #[cfg(all(feature = "blitz", not(feature = "servo"), not(feature = "cef")))]
-// type Engine = iced_webview::Blitz;
-#[cfg(all(
-    feature = "litehtml",
-    /*not(feature = "blitz"),*/
-    not(feature = "servo"),
-    not(feature = "cef")
-))]
-type Engine = iced_webview::Litehtml;
+use iced_servo::{Action, PageType, WebView};
 
 /// Sample email HTML -- table-based layout typical of marketing emails.
 static EMAIL_HTML: &str = r##"
@@ -99,10 +80,6 @@ static EMAIL_HTML: &str = r##"
 "##;
 
 fn main() -> iced::Result {
-    #[cfg(feature = "cef")]
-    if iced_webview::cef_subprocess_check() {
-        return Ok(());
-    }
     iced::application(App::new, App::update, App::view)
         .title("Email Renderer")
         .subscription(App::subscription)
@@ -116,7 +93,7 @@ enum Message {
 }
 
 struct App {
-    webview: WebView<Engine, Message>,
+    webview: WebView<Message>,
     ready: bool,
 }
 
@@ -158,15 +135,6 @@ impl App {
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        #[cfg(feature = "servo")]
-        {
-            self.webview.subscription().map(Message::WebView)
-        }
-        #[cfg(not(feature = "servo"))]
-        {
-            time::every(Duration::from_millis(16))
-                .map(|_| Action::Update)
-                .map(Message::WebView)
-        }
+        self.webview.subscription().map(Message::WebView)
     }
 }

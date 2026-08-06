@@ -1,7 +1,5 @@
 # iced_servo
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/tukanoidd/iced_servo/badge)](https://scorecard.dev/viewer/?uri=github.com/tukanoidd/iced_servo)
-
 A library to embed Servo Web views in iced applications.
 Primary Usage: 
 

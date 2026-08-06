@@ -553,7 +553,7 @@ fn iced_button_to_servo(button: mouse::Button) -> Option<ServoMouseButton> {
 }
 
 fn iced_keyboard_to_servo(event: keyboard::Event) -> Option<KeyboardEvent> {
-    use keyboard_types_servo::{KeyState, Modifiers};
+    use keyboard_types::{KeyState, Modifiers};
 
     let (state, key, modifiers) = match event {
         keyboard::Event::KeyPressed {
@@ -585,11 +585,11 @@ fn iced_keyboard_to_servo(event: keyboard::Event) -> Option<KeyboardEvent> {
         kt_mods |= Modifiers::META;
     }
 
-    let kb_event = keyboard_types_servo::KeyboardEvent {
+    let kb_event = keyboard_types::KeyboardEvent {
         state,
         key: kt_key,
-        code: keyboard_types_servo::Code::Unidentified,
-        location: keyboard_types_servo::Location::Standard,
+        code: keyboard_types::Code::Unidentified,
+        location: keyboard_types::Location::Standard,
         modifiers: kt_mods,
         repeat: false,
         is_composing: false,
@@ -598,46 +598,46 @@ fn iced_keyboard_to_servo(event: keyboard::Event) -> Option<KeyboardEvent> {
     Some(KeyboardEvent { event: kb_event })
 }
 
-fn iced_key_to_keyboard_types(key: &keyboard::Key) -> Option<keyboard_types_servo::Key> {
+fn iced_key_to_keyboard_types(key: &keyboard::Key) -> Option<keyboard_types::Key> {
     use keyboard::key::Named;
-    use keyboard_types_servo::NamedKey;
+    use keyboard_types::NamedKey;
     match key {
-        keyboard::Key::Character(s) => Some(keyboard_types_servo::Key::Character(s.to_string())),
+        keyboard::Key::Character(s) => Some(keyboard_types::Key::Character(s.to_string())),
         keyboard::Key::Named(named) => {
             let k = match named {
-                Named::Enter => keyboard_types_servo::Key::Named(NamedKey::Enter),
-                Named::Tab => keyboard_types_servo::Key::Named(NamedKey::Tab),
-                Named::Space => keyboard_types_servo::Key::Character(" ".to_string()),
-                Named::Backspace => keyboard_types_servo::Key::Named(NamedKey::Backspace),
-                Named::Delete => keyboard_types_servo::Key::Named(NamedKey::Delete),
-                Named::Escape => keyboard_types_servo::Key::Named(NamedKey::Escape),
-                Named::Insert => keyboard_types_servo::Key::Named(NamedKey::Insert),
-                Named::CapsLock => keyboard_types_servo::Key::Named(NamedKey::CapsLock),
-                Named::NumLock => keyboard_types_servo::Key::Named(NamedKey::NumLock),
-                Named::ScrollLock => keyboard_types_servo::Key::Named(NamedKey::ScrollLock),
-                Named::Pause => keyboard_types_servo::Key::Named(NamedKey::Pause),
-                Named::PrintScreen => keyboard_types_servo::Key::Named(NamedKey::PrintScreen),
-                Named::ContextMenu => keyboard_types_servo::Key::Named(NamedKey::ContextMenu),
-                Named::ArrowDown => keyboard_types_servo::Key::Named(NamedKey::ArrowDown),
-                Named::ArrowLeft => keyboard_types_servo::Key::Named(NamedKey::ArrowLeft),
-                Named::ArrowRight => keyboard_types_servo::Key::Named(NamedKey::ArrowRight),
-                Named::ArrowUp => keyboard_types_servo::Key::Named(NamedKey::ArrowUp),
-                Named::End => keyboard_types_servo::Key::Named(NamedKey::End),
-                Named::Home => keyboard_types_servo::Key::Named(NamedKey::Home),
-                Named::PageDown => keyboard_types_servo::Key::Named(NamedKey::PageDown),
-                Named::PageUp => keyboard_types_servo::Key::Named(NamedKey::PageUp),
-                Named::F1 => keyboard_types_servo::Key::Named(NamedKey::F1),
-                Named::F2 => keyboard_types_servo::Key::Named(NamedKey::F2),
-                Named::F3 => keyboard_types_servo::Key::Named(NamedKey::F3),
-                Named::F4 => keyboard_types_servo::Key::Named(NamedKey::F4),
-                Named::F5 => keyboard_types_servo::Key::Named(NamedKey::F5),
-                Named::F6 => keyboard_types_servo::Key::Named(NamedKey::F6),
-                Named::F7 => keyboard_types_servo::Key::Named(NamedKey::F7),
-                Named::F8 => keyboard_types_servo::Key::Named(NamedKey::F8),
-                Named::F9 => keyboard_types_servo::Key::Named(NamedKey::F9),
-                Named::F10 => keyboard_types_servo::Key::Named(NamedKey::F10),
-                Named::F11 => keyboard_types_servo::Key::Named(NamedKey::F11),
-                Named::F12 => keyboard_types_servo::Key::Named(NamedKey::F12),
+                Named::Enter => keyboard_types::Key::Named(NamedKey::Enter),
+                Named::Tab => keyboard_types::Key::Named(NamedKey::Tab),
+                Named::Space => keyboard_types::Key::Character(" ".to_string()),
+                Named::Backspace => keyboard_types::Key::Named(NamedKey::Backspace),
+                Named::Delete => keyboard_types::Key::Named(NamedKey::Delete),
+                Named::Escape => keyboard_types::Key::Named(NamedKey::Escape),
+                Named::Insert => keyboard_types::Key::Named(NamedKey::Insert),
+                Named::CapsLock => keyboard_types::Key::Named(NamedKey::CapsLock),
+                Named::NumLock => keyboard_types::Key::Named(NamedKey::NumLock),
+                Named::ScrollLock => keyboard_types::Key::Named(NamedKey::ScrollLock),
+                Named::Pause => keyboard_types::Key::Named(NamedKey::Pause),
+                Named::PrintScreen => keyboard_types::Key::Named(NamedKey::PrintScreen),
+                Named::ContextMenu => keyboard_types::Key::Named(NamedKey::ContextMenu),
+                Named::ArrowDown => keyboard_types::Key::Named(NamedKey::ArrowDown),
+                Named::ArrowLeft => keyboard_types::Key::Named(NamedKey::ArrowLeft),
+                Named::ArrowRight => keyboard_types::Key::Named(NamedKey::ArrowRight),
+                Named::ArrowUp => keyboard_types::Key::Named(NamedKey::ArrowUp),
+                Named::End => keyboard_types::Key::Named(NamedKey::End),
+                Named::Home => keyboard_types::Key::Named(NamedKey::Home),
+                Named::PageDown => keyboard_types::Key::Named(NamedKey::PageDown),
+                Named::PageUp => keyboard_types::Key::Named(NamedKey::PageUp),
+                Named::F1 => keyboard_types::Key::Named(NamedKey::F1),
+                Named::F2 => keyboard_types::Key::Named(NamedKey::F2),
+                Named::F3 => keyboard_types::Key::Named(NamedKey::F3),
+                Named::F4 => keyboard_types::Key::Named(NamedKey::F4),
+                Named::F5 => keyboard_types::Key::Named(NamedKey::F5),
+                Named::F6 => keyboard_types::Key::Named(NamedKey::F6),
+                Named::F7 => keyboard_types::Key::Named(NamedKey::F7),
+                Named::F8 => keyboard_types::Key::Named(NamedKey::F8),
+                Named::F9 => keyboard_types::Key::Named(NamedKey::F9),
+                Named::F10 => keyboard_types::Key::Named(NamedKey::F10),
+                Named::F11 => keyboard_types::Key::Named(NamedKey::F11),
+                Named::F12 => keyboard_types::Key::Named(NamedKey::F12),
                 _ => return None,
             };
             Some(k)

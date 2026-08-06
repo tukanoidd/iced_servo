@@ -2,35 +2,13 @@ use iced::{
     Element, Length, Subscription, Task,
     widget::{button, column, container, row, text},
 };
-use iced_webview::{Action, PageType, WebView};
+use iced_servo::{Action, PageType, WebView};
 
-#[cfg(not(feature = "servo"))]
-use iced::time;
-#[cfg(not(feature = "servo"))]
-use std::time::Duration;
-
-#[cfg(feature = "cef")]
-type Engine = iced_webview::Cef;
-#[cfg(all(feature = "servo", not(feature = "cef")))]
-type Engine = iced_webview::Servo;
-// #[cfg(all(feature = "blitz", not(feature = "servo"), not(feature = "cef")))]
-// type Engine = iced_webview::Blitz;
-#[cfg(all(
-    feature = "litehtml",
-    /*not(feature = "blitz"),*/
-    not(feature = "servo"),
-    not(feature = "cef")
-))]
-type Engine = iced_webview::Litehtml;
+type Engine = iced_servo::Servo;
 
 static URL: &str = "https://docs.rs/iced/latest/iced/index.html";
 
 fn main() -> iced::Result {
-    #[cfg(feature = "cef")]
-    if iced_webview::cef_subprocess_check() {
-        return Ok(());
-    }
-
     iced::application(App::new, App::update, App::view)
         .title("An embedded web view")
         .subscription(App::subscription)
@@ -103,7 +81,8 @@ impl App {
                     } else {
                         *current_view += 1;
                     };
-                    self.webview.update(Action::ChangeView(*current_view))
+                    self.webview
+                        .update(Action::ChangeView(*current_view as usize))
                 } else {
                     self.current_view = Some(0);
                     self.webview.update(Action::ChangeView(0))
@@ -140,15 +119,6 @@ impl App {
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        #[cfg(feature = "servo")]
-        {
-            self.webview.subscription().map(Message::WebView)
-        }
-        #[cfg(not(feature = "servo"))]
-        {
-            time::every(Duration::from_millis(10))
-                .map(|_| Action::Update)
-                .map(Message::WebView)
-        }
+        self.webview.subscription().map(Message::WebView)
     }
 }

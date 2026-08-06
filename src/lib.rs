@@ -1,58 +1,26 @@
-//! A library to embed web views in iced applications.
+//! A library to embed servo web views in iced applications.
 //!
-//! Supports [Blitz](https://github.com/DioxusLabs/blitz) (Rust-native, modern CSS),
-//! [litehtml](https://github.com/franzos/litehtml-rs) (lightweight, CPU-based), and
 //! [Servo](https://servo.org/) (full browser: HTML5, CSS3, JS).
 //!
 //! Has two separate widgets: Basic, and Advanced.
 //! The basic widget is simple to implement — use abstractions like `CloseCurrent` and `ChangeView`.
 //! The advanced widget gives you direct `ViewId` control for multiple simultaneous views.
 //!
-//! # Basic usage
-//!
-//! ```rust,ignore
-//! enum Message {
-//!    WebView(iced_webview::Action),
-//!    Update,
-//! }
-//!
-//! struct State {
-//!    webview: iced_webview::WebView<iced_webview::Blitz, Message>,
-//! }
-//! ```
-//!
-//! Then call the usual `view/update` methods — see
-//! [examples](https://github.com/franzos/iced_webview_v2/tree/main/examples) for full working code.
+//! [examples](https://github.com/tukanoidd/iced_servo/tree/main/examples) for full working code.
 //!
 use std::sync::Arc;
 
 use iced::widget::image;
 
-/// Engine Trait and Engine implementations
-pub mod engines;
-pub use engines::{Engine, PageType, PixelFormat, ViewId};
-
+mod engines;
+mod util;
 mod webview;
+
+pub use crate::{
+    engines::*,
+    webview::{advanced, basic},
+};
 pub use basic::{Action, WebView};
-pub use webview::{advanced, basic};
-
-// #[cfg(feature = "blitz")]
-// pub use engines::blitz::Blitz;
-
-#[cfg(feature = "litehtml")]
-pub use engines::litehtml::Litehtml;
-
-#[cfg(feature = "servo")]
-pub use engines::servo::Servo;
-
-#[cfg(feature = "cef")]
-pub use engines::cef_engine::{Cef, cef_subprocess_check};
-
-pub(crate) mod util;
-
-// #[cfg(any(feature = "litehtml", feature = "blitz"))]
-#[cfg(feature = "litehtml")]
-pub(crate) mod fetch;
 
 /// Image details for passing the view around
 #[derive(Clone, Debug)]
